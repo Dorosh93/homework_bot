@@ -43,7 +43,7 @@ handler.setFormatter(formatter)
 
 
 def send_message(bot, message):
-    """Отправка сообщения"""
+    """Отправка сообщения."""
     try:
         bot.send_message(
             chat_id=TELEGRAM_CHAT_ID,
@@ -51,11 +51,11 @@ def send_message(bot, message):
         )
         logger.info = ('Сообщение отправлено')
     except Exception:
-            logger.error('Сообщение не отправлено')
+        logger.error('Сообщение не отправлено')
 
 
 def get_api_answer(current_timestamp):
-    """Запрос к эндпоинту"""
+    """Запрос к эндпоинту."""
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
     response = requests.get(ENDPOINT, headers=HEADERS, params=params)
@@ -66,7 +66,7 @@ def get_api_answer(current_timestamp):
 
 
 def check_response(response):
-    """Проверка ответа API на корректность"""
+    """Проверка ответа API на корректность."""
     if type(response) is not dict:
         raise TypeError('Ошибка в типе ответа API')
     if 'homeworks' not in response:
@@ -78,8 +78,7 @@ def check_response(response):
 
 
 def parse_status(homework):
-    """Извлекается информацию о нужной домашней работы
-       и готовит строку для отправки"""
+    """Извлекается информацию о нужной домашней работе."""
     if 'homework_name' not in homework:
         raise KeyError('В ответе API отсутсвует ключ homework_name')
     if 'status' not in homework:
@@ -93,7 +92,7 @@ def parse_status(homework):
 
 
 def check_tokens():
-    """Проверка токенов"""
+    """Проверка токенов."""
     if (TELEGRAM_TOKEN is None or PRACTICUM_TOKEN is None):
         return False
     return True
@@ -129,7 +128,7 @@ def main():
         updater.dispatcher.add_handler(
             CommandHandler('status_hw', parse_status))
         updater.start_polling()
- 
+
 
 if __name__ == '__main__':
     main()
