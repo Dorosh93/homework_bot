@@ -43,6 +43,7 @@ handler.setFormatter(formatter)
 
 
 def send_message(bot, message):
+    """Отправка сообщения"""
     try:
         bot.send_message(
             chat_id=TELEGRAM_CHAT_ID,
@@ -78,7 +79,7 @@ def check_response(response):
 
 def parse_status(homework):
     """Извлекается информацию о нужной домашней работы
-    и готовит строку для отправки"""
+       и готовит строку для отправки"""
     if 'homework_name' not in homework:
         raise KeyError('В ответе API отсутсвует ключ homework_name')
     if 'status' not in homework:
@@ -123,13 +124,10 @@ def main():
             send_message(bot, message)
             time.sleep(RETRY_TIME)
 
-
         updater.dispatcher.add_handler(
-            CommandHandler(
-                'start', send_message))
+            CommandHandler('start', send_message))
         updater.dispatcher.add_handler(
-            CommandHandler(
-                'status_hw', parse_status))
+            CommandHandler('status_hw', parse_status))
         updater.start_polling()
  
 
