@@ -3,7 +3,7 @@ import time
 import logging
 import telegram
 import requests
-from telegram.ext import CommandHandler, Updater
+from telegram.ext import Updater
 from logging import StreamHandler
 from dotenv import load_dotenv
 
@@ -14,7 +14,7 @@ TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
 RETRY_TIME = 60
-PRACTICUM_ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
+PRACT_ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
 
 
@@ -59,7 +59,7 @@ def get_api_answer(current_timestamp):
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
     try:
-        response = requests.get(PRACTICUM_ENDPOINT, headers=HEADERS, params=params)
+        response = requests.get(PRACT_ENDPOINT, headers=HEADERS, params=params)
         logger.info('Запрос на сервер отправлен')
     except Exception:
         logger.error('Запрос на сервер не отправлен')
@@ -129,8 +129,7 @@ def main():
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             logger.error(message)
-            send_message(bot, message)
-            
+            send_message(bot, message)  
 
         time.sleep(RETRY_TIME)
         updater.start_polling()
