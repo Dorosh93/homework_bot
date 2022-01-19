@@ -129,7 +129,7 @@ def main():
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             logger.error(message)
-            send_message(bot, message)  
+            send_message(bot, message)
 
         time.sleep(RETRY_TIME)
         updater.start_polling()
