@@ -13,8 +13,8 @@ PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
-RETRY_TIME = 600
-ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
+RETRY_TIME = 60
+PRACTICUM_ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
 
 
@@ -49,7 +49,7 @@ def send_message(bot, message):
             chat_id=TELEGRAM_CHAT_ID,
             text=message,
         )
-        logger.info = ('Сообщение отправлено')
+        logger.info('Сообщение отправлено')
     except Exception:
         logger.error('Сообщение не отправлено')
 
@@ -58,22 +58,31 @@ def get_api_answer(current_timestamp):
     """Запрос к эндпоинту."""
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
-    response = requests.get(ENDPOINT, headers=HEADERS, params=params)
+    try:
+        response = requests.get(PRACTICUM_ENDPOINT, headers=HEADERS, params=params)
+        logger.info('Запрос на сервер отправлен')
+    except Exception:
+        logger.error('Запрос на сервер не отправлен')
     if response.status_code != 200:
         raise logger.error('Не удалось получить ответ API'
                            f'error-status: {response.status_code}')
-    return response.json()
+    try:
+        return response.json()
+    except Exception:
+        raise logger.error('Ответ от сервера не в json формате')
 
 
 def check_response(response):
     """Проверка ответа API на корректность."""
-    if type(response) is not dict:
+    if not isinstance(response, dict):
         raise TypeError('Ошибка в типе ответа API')
     if 'homeworks' not in response:
         raise KeyError('В ответе API нет ключа homeworks')
     homeworks = response['homeworks']
-    if type(homeworks) is not list:
+    if not isinstance(homeworks, list):
         raise TypeError('Homeworks не является списком')
+    if homeworks[0] is None:
+        raise IndexError('В homeworks нет домашних работ')
     return homeworks[0]
 
 
@@ -86,23 +95,22 @@ def parse_status(homework):
     homework_name = homework['homework_name']
     homework_status = homework['status']
     if homework_status not in HOMEWORK_STATUSES:
-        raise Exception('Неизвестный статус работы')
+        raise Exception(f'Неизвестный статус работы - {homework_status}')
     verdict = HOMEWORK_STATUSES[homework_status]
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
 def check_tokens():
     """Проверка токенов."""
-    if (TELEGRAM_TOKEN is None or PRACTICUM_TOKEN is None):
-        return False
-    return True
+    return all([TELEGRAM_TOKEN, PRACTICUM_TOKEN])
 
 
 def main():
     """Основная логика работы бота."""
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     updater = Updater(TELEGRAM_TOKEN)
-    current_timestamp = 1635795445
+    start_timestamp = 1640995200
+    current_timestamp = start_timestamp
     STATUS = ''
     if not check_tokens():
         logger.critical = ('Отсутсвуют переменные окружения')
@@ -113,20 +121,18 @@ def main():
             new_status = parse_status(check_response(response))
             if new_status != STATUS:
                 send_message(bot, new_status)
+                if STATUS != '':
+                    current_timestamp = int(time.time())
                 STATUS = new_status
-                current_timestamp = int(time.time())
-                time.sleep(RETRY_TIME)
-            logger.debug('Статус не поменялся')
+            else:
+                logger.debug('Статус не поменялся')
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             logger.error(message)
             send_message(bot, message)
-            time.sleep(RETRY_TIME)
+            
 
-        updater.dispatcher.add_handler(
-            CommandHandler('start', send_message))
-        updater.dispatcher.add_handler(
-            CommandHandler('status_hw', parse_status))
+        time.sleep(RETRY_TIME)
         updater.start_polling()
 
 
