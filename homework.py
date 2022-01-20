@@ -14,8 +14,10 @@ TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
 RETRY_TIME = 600
-PRACT_ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
-HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
+PRACTICUM_ENDPOINT = (
+    'https://practicum.yandex.ru/api/user_api/homework_statuses/'
+)
+PRACTICUM_HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
 
 
 HOMEWORK_STATUSES = {
@@ -59,7 +61,11 @@ def get_api_answer(current_timestamp):
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
     try:
-        response = requests.get(PRACT_ENDPOINT, headers=HEADERS, params=params)
+        response = requests.get(
+            PRACTICUM_ENDPOINT,
+            headers=PRACTICUM_HEADERS,
+            params=params
+        )
         logger.info('Запрос на сервер отправлен')
     except Exception:
         logger.error('Запрос на сервер не отправлен')
@@ -107,8 +113,8 @@ def main():
     """Основная логика работы бота."""
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     updater = Updater(TELEGRAM_TOKEN)
-    start_timestamp = 1640995200
-    current_timestamp = start_timestamp
+    last_homework_time = 1650000000
+    current_timestamp = last_homework_time
     STATUS = ''
     if not check_tokens():
         logger.critical = ('Отсутсвуют переменные окружения')
@@ -130,7 +136,8 @@ def main():
             send_message(bot, message)
 
         time.sleep(RETRY_TIME)
-        updater.start_polling()
+
+    updater.start_polling()
 
 
 if __name__ == '__main__':
