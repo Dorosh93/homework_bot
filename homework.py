@@ -113,7 +113,7 @@ def main():
     """Основная логика работы бота."""
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     updater = Updater(TELEGRAM_TOKEN)
-    last_homework_time = 1650000000
+    last_homework_time = 1630000000
     current_timestamp = last_homework_time
     STATUS = ''
     if not check_tokens():
