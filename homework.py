@@ -3,7 +3,6 @@ import time
 import logging
 import telegram
 import requests
-from telegram.ext import Updater
 from logging import StreamHandler
 from dotenv import load_dotenv
 
@@ -112,7 +111,6 @@ def check_tokens():
 def main():
     """Основная логика работы бота."""
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
-    updater = Updater(TELEGRAM_TOKEN)
     last_homework_time = 1630000000
     current_timestamp = last_homework_time
     STATUS = ''
@@ -136,8 +134,6 @@ def main():
             send_message(bot, message)
 
         time.sleep(RETRY_TIME)
-
-    updater.start_polling()
 
 
 if __name__ == '__main__':
